@@ -19,6 +19,7 @@
 body {
   text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
   background-color: #5b5580;
+  color: white;
 }
 
 .cover-container {
@@ -69,13 +70,6 @@ background-color: rgba(0,0,0,0.5) !important;
 color: white;
 }
 
-.input-group-prepend span{
-width: 50px;
-background-color: #FFC312;
-color: black;
-border:0 !important;
-}
-
 input:focus{
 outline: 0 0 0 0  !important;
 box-shadow: 0 0 0 0 !important;
@@ -95,8 +89,8 @@ margin-right: 5px;
 }
 
 .login_btn{
-color: black;
-background-color: #FFC312;
+color: white;
+background-color: black;
 width: 100px;
 }
 

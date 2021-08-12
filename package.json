@@ -30,6 +30,7 @@
     "webpack": "^5.45.1"
   },
   "dependencies": {
+    "firebase": "^8.8.1",
     "jquery": "^3.6.0"
   }
 }
