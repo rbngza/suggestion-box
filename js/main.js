@@ -30,4 +30,8 @@ export function sendSuggestion() {
     $("#login-btn").click(function() {
       toggleSignIn();
     });
+
+    $("#search-button").click(function() {
+      toggleSignIn();
+    });
   })

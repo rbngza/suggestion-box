@@ -24,7 +24,7 @@ import "firebase/firestore";
     $('#loggedin-box').css('display','block');
   }
 
-  function createDiv(data) {
+  function createDiv(data, docid) {
     var cardDiv = document.createElement("div");
     var headerDiv = document.createElement("div");
     var bodyDiv = document.createElement("div");
@@ -44,25 +44,31 @@ import "firebase/firestore";
     textPar.innerText = data.data;
 
     titleH5.className = "card-title";
+    titleH5.innerText = docid;
     textPar.className = "card-text";
+    textarea.id = docid;
     bodyDiv.className = "card-body";
+    commentButton.className = "btn btn-primary";
+    commentButton.innerText = "Comment";
+    commentButton.id = docid;
 
     bodyDiv.appendChild(titleH5);
     bodyDiv.appendChild(textPar);
     bodyDiv.appendChild(textarea);
     bodyDiv.appendChild(commentButton);
 
-    return boardDiv;
+    return cardDiv;
   }
 
   function loadSuggestions(){
     var db = firebase.firestore();
-    var dataIndividual;
+    var masterDiv = document.getElementById("loggedin-box");
     //Obtaining the data collection from the data base
     db.collection("suggestions").get().then(function(querySnapshot) {
       querySnapshot.forEach(function(doc) {
         var data = doc.data();
-        createDiv(data, doc.id);
+        var div = createDiv(data, doc.id);
+        masterDiv.appendChild(div);
       });
     });
   }
@@ -139,6 +145,11 @@ import "firebase/firestore";
       // [END_EXCLUDE]
     });
     // [END sendpasswordemail];
+  }
+
+  function searchSuggestion(){
+    var inputId = $("suggestion-id").val();;
+    
   }
 
 export {
