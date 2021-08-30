@@ -1,4 +1,4 @@
-import db from './firebase-connection.js';
+import { db, sendPasswordReset, toggleSignIn } from './firebase-connection.js';
 
 export function sendSuggestion() {
   var suggestion = $("#suggestion-textarea").val();
@@ -11,7 +11,7 @@ export function sendSuggestion() {
   })
   .then((docRef) => {
       console.log("Suggestion written with ID: ", docRef.id);
-      
+
       $('#suggestion-box').css('display','none');
       $('.alert').show();
       $("#suggestion-id-text").html("Tu sugerencia ha sido creada con el ID: " + docRef.id.toString());
@@ -21,3 +21,13 @@ export function sendSuggestion() {
   });
   }
 }
+
+  window.addEventListener('load', function () {
+    $("#pass-reset").click(function() {
+      sendPasswordReset();
+    });
+
+    $("#login-btn").click(function() {
+      toggleSignIn();
+    });
+  })

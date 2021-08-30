@@ -24029,16 +24029,6 @@ var esm = {
 
 /***/ }),
 
-/***/ "./js/admin-login.js":
-/*!***************************!*\
-  !*** ./js/admin-login.js ***!
-  \***************************/
-/***/ (() => {
-
-
-
-/***/ }),
-
 /***/ "./js/bootstrap.bundle.js":
 /*!********************************!*\
   !*** ./js/bootstrap.bundle.js ***!
@@ -31416,7 +31406,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   "db": () => (/* binding */ db),
+/* harmony export */   "sendPasswordReset": () => (/* binding */ sendPasswordReset),
+/* harmony export */   "toggleSignIn": () => (/* binding */ toggleSignIn)
 /* harmony export */ });
 /* harmony import */ var firebase_app__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! firebase/app */ "./node_modules/firebase/app/dist/index.esm.js");
 /* harmony import */ var firebase_auth__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! firebase/auth */ "./node_modules/firebase/auth/dist/index.esm.js");
@@ -31436,9 +31428,56 @@ var firebaseConfig = {
 var app = firebase_app__WEBPACK_IMPORTED_MODULE_0__.default.initializeApp(firebaseConfig);
 var db = firebase_app__WEBPACK_IMPORTED_MODULE_0__.default.firestore(app);
 
-function toggleSignIn() {
+function hideLogin() {
+  $('#login-box').css('display', 'none');
+}
+
+function initUI() {
+  $('#loggedin-box').css('display', 'block');
+}
+
+function createDiv(data) {
+  var cardDiv = document.createElement("div");
+  var headerDiv = document.createElement("div");
+  var bodyDiv = document.createElement("div");
+  cardDiv.className = "card";
+  headerDiv.className = "card-header";
+  bodyDiv.className = "card-body";
+  cardDiv.appendChild(headerDiv);
+  cardDiv.appendChild(bodyDiv);
+  var titleH5 = document.createElement("h5");
+  var textPar = document.createElement("p");
+  var textarea = document.createElement("textarea");
+  var commentButton = document.createElement("button");
+  textPar.innerText = data.data;
+  titleH5.className = "card-title";
+  textPar.className = "card-text";
+  bodyDiv.className = "card-body";
+  bodyDiv.appendChild(titleH5);
+  bodyDiv.appendChild(textPar);
+  bodyDiv.appendChild(textarea);
+  bodyDiv.appendChild(commentButton);
+  return boardDiv;
+}
+
+function loadSuggestions() {
+  var db = firebase_app__WEBPACK_IMPORTED_MODULE_0__.default.firestore();
+  var dataIndividual; //Obtaining the data collection from the data base
+
+  db.collection("suggestions").get().then(function (querySnapshot) {
+    querySnapshot.forEach(function (doc) {
+      var data = doc.data();
+      createDiv(data, doc.id);
+    });
+  });
+}
+
+var toggleSignIn = function toggleSignIn() {
   if (firebase_app__WEBPACK_IMPORTED_MODULE_0__.default.auth().currentUser != null) {
     alert('User already signed in.');
+    initUI();
+    hideLogin();
+    loadSuggestions();
   } else {
     var email = document.getElementById('email').value;
     var password = document.getElementById('password').value;
@@ -31458,7 +31497,8 @@ function toggleSignIn() {
     firebase_app__WEBPACK_IMPORTED_MODULE_0__.default.auth().signInWithEmailAndPassword(email, password).then(function (user) {
       // Signed in
       initUI();
-      hideLogin(); // ...
+      hideLogin();
+      loadSuggestions(); // ...
     })["catch"](function (error) {
       // Handle Errors here.
       var errorCode = error.code;
@@ -31471,14 +31511,14 @@ function toggleSignIn() {
       }
 
       console.log(error);
-      document.getElementById('btn-sign-in').disabled = false; // [END_EXCLUDE]
+      document.getElementById('login-btn').disabled = false; // [END_EXCLUDE]
     }); // [END authwithemail]
   }
 
-  document.getElementById('btn-sign-in').disabled = true;
-}
+  document.getElementById('login-btn').disabled = true;
+};
 
-function sendPasswordReset() {
+var sendPasswordReset = function sendPasswordReset() {
   var email = document.getElementById('email').value;
 
   if (email.length < 4) {
@@ -31504,22 +31544,9 @@ function sendPasswordReset() {
 
     console.log(error); // [END_EXCLUDE]
   }); // [END sendpasswordemail];
-}
+};
 
-function hideLogin() {
-  $('#login-box').css('display', 'none');
-}
 
-function initUI() {
-  $('#loggedin-box').css('display', 'block');
-}
-
-window.addEventListener('load', function () {
-  $("#pass-reset").click(function () {
-    sendPasswordReset();
-  });
-});
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (db);
 
 /***/ }),
 
@@ -31542,7 +31569,7 @@ function sendSuggestion() {
   if (suggestion == null) {
     alert("Porfavor escribe una sugerencia.");
   } else {
-    _firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.default.collection("suggestions").add({
+    _firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.db.collection("suggestions").add({
       data: suggestion
     }).then(function (docRef) {
       console.log("Suggestion written with ID: ", docRef.id);
@@ -31554,6 +31581,14 @@ function sendSuggestion() {
     });
   }
 }
+window.addEventListener('load', function () {
+  $("#pass-reset").click(function () {
+    (0,_firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.sendPasswordReset)();
+  });
+  $("#login-btn").click(function () {
+    (0,_firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.toggleSignIn)();
+  });
+});
 
 /***/ }),
 
@@ -42950,8 +42985,6 @@ var __webpack_exports__ = {};
   !*** ./js/app.js ***!
   \*******************/
 window.$ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
-
-__webpack_require__(/*! ./admin-login.js */ "./js/admin-login.js");
 
 __webpack_require__(/*! ./bootstrap.bundle.js */ "./js/bootstrap.bundle.js");
 

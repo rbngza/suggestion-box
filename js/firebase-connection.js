@@ -16,9 +16,63 @@ import "firebase/firestore";
   var app = firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore(app);
 
-  function toggleSignIn() {
+  function hideLogin(){
+    $('#login-box').css('display','none');
+  }
+
+  function initUI(){
+    $('#loggedin-box').css('display','block');
+  }
+
+  function createDiv(data) {
+    var cardDiv = document.createElement("div");
+    var headerDiv = document.createElement("div");
+    var bodyDiv = document.createElement("div");
+
+    cardDiv.className = "card";
+    headerDiv.className = "card-header";
+    bodyDiv.className = "card-body";
+
+    cardDiv.appendChild(headerDiv);
+    cardDiv.appendChild(bodyDiv);
+
+    var titleH5 = document.createElement("h5");
+    var textPar = document.createElement("p");
+    var textarea = document.createElement("textarea");
+    var commentButton = document.createElement("button");
+
+    textPar.innerText = data.data;
+
+    titleH5.className = "card-title";
+    textPar.className = "card-text";
+    bodyDiv.className = "card-body";
+
+    bodyDiv.appendChild(titleH5);
+    bodyDiv.appendChild(textPar);
+    bodyDiv.appendChild(textarea);
+    bodyDiv.appendChild(commentButton);
+
+    return boardDiv;
+  }
+
+  function loadSuggestions(){
+    var db = firebase.firestore();
+    var dataIndividual;
+    //Obtaining the data collection from the data base
+    db.collection("suggestions").get().then(function(querySnapshot) {
+      querySnapshot.forEach(function(doc) {
+        var data = doc.data();
+        createDiv(data, doc.id);
+      });
+    });
+  }
+
+ var toggleSignIn = function() {
     if (firebase.auth().currentUser != null) {
       alert('User already signed in.');
+      initUI();
+      hideLogin();
+      loadSuggestions();
     } else {
       var email = document.getElementById('email').value;
       var password = document.getElementById('password').value;
@@ -36,6 +90,7 @@ import "firebase/firestore";
           // Signed in
           initUI();
           hideLogin();
+          loadSuggestions();
           // ...
         })
         .catch(function(error) {
@@ -49,16 +104,16 @@ import "firebase/firestore";
             alert(errorMessage);
           }
           console.log(error);
-          document.getElementById('btn-sign-in').disabled = false;
+          document.getElementById('login-btn').disabled = false;
           // [END_EXCLUDE]
         });
 
       // [END authwithemail]
     }
-    document.getElementById('btn-sign-in').disabled = true;
+    document.getElementById('login-btn').disabled = true;
   }
 
-  function sendPasswordReset() {
+  var sendPasswordReset = function() {
     var email = document.getElementById('email').value;
     if (email.length < 4) {
       alert('Please enter an email address.');
@@ -86,19 +141,8 @@ import "firebase/firestore";
     // [END sendpasswordemail];
   }
 
-  function hideLogin(){
-    $('#login-box').css('display','none');
-  }
-
-  function initUI(){
-    $('#loggedin-box').css('display','block');
-
-  }
-
-window.addEventListener('load', function () {
-  $("#pass-reset").click(function() {
-    sendPasswordReset();
-  });
-})
-
-  export default db;
+export {
+  db,
+  sendPasswordReset,
+  toggleSignIn
+}
