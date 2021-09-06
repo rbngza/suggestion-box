@@ -31408,11 +31408,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "db": () => (/* binding */ db),
 /* harmony export */   "sendPasswordReset": () => (/* binding */ sendPasswordReset),
-/* harmony export */   "toggleSignIn": () => (/* binding */ toggleSignIn)
+/* harmony export */   "toggleSignIn": () => (/* binding */ toggleSignIn),
+/* harmony export */   "searchSuggestion": () => (/* binding */ searchSuggestion)
 /* harmony export */ });
 /* harmony import */ var firebase_app__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! firebase/app */ "./node_modules/firebase/app/dist/index.esm.js");
-/* harmony import */ var firebase_auth__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! firebase/auth */ "./node_modules/firebase/auth/dist/index.esm.js");
-/* harmony import */ var firebase_firestore__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! firebase/firestore */ "./node_modules/firebase/firestore/dist/index.esm.js");
+/* harmony import */ var _main_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./main.js */ "./js/main.js");
+/* harmony import */ var firebase_auth__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! firebase/auth */ "./node_modules/firebase/auth/dist/index.esm.js");
+/* harmony import */ var firebase_firestore__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! firebase/firestore */ "./node_modules/firebase/firestore/dist/index.esm.js");
+
 
 
 
@@ -31436,7 +31439,14 @@ function initUI() {
   $('#loggedin-box').css('display', 'block');
 }
 
-function createDiv(data, docid) {
+function addListener(docId) {
+  console.log("#" + docId, " listener created");
+  $("#" + docId).click(function () {
+    (0,_main_js__WEBPACK_IMPORTED_MODULE_1__.sendComment)(docId);
+  });
+}
+
+function createDiv(data, docid, isCommented) {
   var cardDiv = document.createElement("div");
   var headerDiv = document.createElement("div");
   var bodyDiv = document.createElement("div");
@@ -31447,21 +31457,32 @@ function createDiv(data, docid) {
   cardDiv.appendChild(bodyDiv);
   var titleH5 = document.createElement("h5");
   var textPar = document.createElement("p");
-  var textarea = document.createElement("textarea");
-  var commentButton = document.createElement("button");
   textPar.innerText = data.data;
   titleH5.className = "card-title";
   titleH5.innerText = docid;
   textPar.className = "card-text";
-  textarea.id = docid;
   bodyDiv.className = "card-body";
-  commentButton.className = "btn btn-primary";
-  commentButton.innerText = "Comment";
-  commentButton.id = docid;
   bodyDiv.appendChild(titleH5);
   bodyDiv.appendChild(textPar);
-  bodyDiv.appendChild(textarea);
-  bodyDiv.appendChild(commentButton);
+
+  if (isCommented) {
+    var textPar2 = document.createElement("p");
+    textPar2.innerText = "Comentario: " + data.comment;
+    textPar2.className = "card-text";
+    bodyDiv.appendChild(textPar2);
+  } else {
+    var textarea = document.createElement("textarea");
+    var commentButton = document.createElement("button");
+    textarea.id = docid + "textarea";
+    textarea.rows = 4;
+    textarea.cols = 50;
+    commentButton.className = "btn btn-primary";
+    commentButton.innerText = "Comment";
+    commentButton.id = docid;
+    bodyDiv.appendChild(textarea);
+    bodyDiv.appendChild(commentButton);
+  }
+
   return cardDiv;
 }
 
@@ -31472,8 +31493,9 @@ function loadSuggestions() {
   db.collection("suggestions").get().then(function (querySnapshot) {
     querySnapshot.forEach(function (doc) {
       var data = doc.data();
-      var div = createDiv(data, doc.id);
+      var div = createDiv(data, doc.id, data.isCommented);
       masterDiv.appendChild(div);
+      addListener(doc.id);
     });
   });
 }
@@ -31553,8 +31575,25 @@ var sendPasswordReset = function sendPasswordReset() {
 };
 
 function searchSuggestion() {
-  var inputId = $("suggestion-id").val();
-  ;
+  var inputId = $("#suggestion-docid").val();
+  var db = firebase_app__WEBPACK_IMPORTED_MODULE_0__.default.firestore();
+  var masterDiv = document.getElementById("search-card"); //Obtaining the data collection from the data base
+
+  console.log(inputId);
+  var docRef = db.collection("suggestions").doc(inputId);
+  docRef.get().then(function (doc) {
+    if (doc.exists) {
+      var data = doc.data();
+      var div = createDiv(data, doc.id, data.isCommented);
+      masterDiv.appendChild(div);
+      addListener(doc.id);
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
+    }
+  })["catch"](function (error) {
+    console.log("Error getting document:", error);
+  });
 }
 
 
@@ -31570,7 +31609,8 @@ function searchSuggestion() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "sendSuggestion": () => (/* binding */ sendSuggestion)
+/* harmony export */   "sendSuggestion": () => (/* binding */ sendSuggestion),
+/* harmony export */   "sendComment": () => (/* binding */ sendComment)
 /* harmony export */ });
 /* harmony import */ var _firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./firebase-connection.js */ "./js/firebase-connection.js");
 
@@ -31581,7 +31621,8 @@ function sendSuggestion() {
     alert("Porfavor escribe una sugerencia.");
   } else {
     _firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.db.collection("suggestions").add({
-      data: suggestion
+      data: suggestion,
+      isCommented: false
     }).then(function (docRef) {
       console.log("Suggestion written with ID: ", docRef.id);
       $('#suggestion-box').css('display', 'none');
@@ -31589,6 +31630,26 @@ function sendSuggestion() {
       $("#suggestion-id-text").html("Tu sugerencia ha sido creada con el ID: " + docRef.id.toString());
     })["catch"](function (error) {
       console.error("Error adding suggestion: ", error);
+    });
+  }
+}
+function sendComment(docId) {
+  var comment = $("#" + docId + "textarea").val();
+
+  if (comment == null) {
+    alert("Porfavor escribe una sugerencia.");
+  } else {
+    console.log(docId);
+    _firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.db.collection("suggestions").doc(docId).set({
+      comment: comment,
+      isCommented: true
+    }, {
+      merge: true
+    }).then(function () {
+      $('.alert1').show();
+      $("#comment-text").html("Se ha comentado la sugerencia con ID: " + docId + " ha sido actualizada");
+    })["catch"](function (error) {
+      console.error("Error adding comment: ", error);
     });
   }
 }
@@ -31600,7 +31661,7 @@ window.addEventListener('load', function () {
     (0,_firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.toggleSignIn)();
   });
   $("#search-button").click(function () {
-    (0,_firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.toggleSignIn)();
+    (0,_firebase_connection_js__WEBPACK_IMPORTED_MODULE_0__.searchSuggestion)();
   });
 });
 

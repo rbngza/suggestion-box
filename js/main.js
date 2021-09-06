@@ -1,4 +1,4 @@
-import { db, sendPasswordReset, toggleSignIn } from './firebase-connection.js';
+import { db, sendPasswordReset, toggleSignIn, searchSuggestion } from './firebase-connection.js';
 
 export function sendSuggestion() {
   var suggestion = $("#suggestion-textarea").val();
@@ -7,7 +7,8 @@ export function sendSuggestion() {
     alert("Porfavor escribe una sugerencia.");
   } else {
     db.collection("suggestions").add({
-      data: suggestion
+      data: suggestion,
+      isCommented: false
   })
   .then((docRef) => {
       console.log("Suggestion written with ID: ", docRef.id);
@@ -22,6 +23,27 @@ export function sendSuggestion() {
   }
 }
 
+export function sendComment(docId) {
+  var comment = $("#" + docId + "textarea").val();
+
+  if (comment == null) {
+    alert("Porfavor escribe una sugerencia.");
+  } else {
+    console.log(docId);
+    db.collection("suggestions").doc(docId).set({
+      comment: comment,
+      isCommented: true
+    }, {merge: true})
+  .then(() => {
+      $('.alert1').show();
+      $("#comment-text").html("Se ha comentado la sugerencia con ID: " + docId + " ha sido actualizada");
+  })
+  .catch((error) => {
+      console.error("Error adding comment: ", error);
+  });
+  }
+}
+
   window.addEventListener('load', function () {
     $("#pass-reset").click(function() {
       sendPasswordReset();
@@ -32,6 +54,6 @@ export function sendSuggestion() {
     });
 
     $("#search-button").click(function() {
-      toggleSignIn();
+      searchSuggestion();
     });
   })
