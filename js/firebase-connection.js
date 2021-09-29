@@ -34,7 +34,7 @@ function addListener(docId) {
   });
 }
 
-function createDiv(data, docid, isCommented) {
+function createDiv(data, docid, isCommented, canComment) {
   var cardDiv = document.createElement("div");
   var headerDiv = document.createElement("div");
   var bodyDiv = document.createElement("div");
@@ -58,25 +58,41 @@ function createDiv(data, docid, isCommented) {
   bodyDiv.appendChild(titleH5);
   bodyDiv.appendChild(textPar);
 
-  if (isCommented) {
-    var textPar2 = document.createElement("p");
-    textPar2.innerText = "Comentario: " + data.comment;
-    textPar2.className = "card-text";
-    bodyDiv.appendChild(textPar2);
+  if (canComment) {
+    if (isCommented) {
+      var textPar2 = document.createElement("p");
+      textPar2.innerText = "Comentario: " + data.comment;
+      textPar2.className = "card-text";
+      bodyDiv.appendChild(textPar2);
+    } else {
+      var textarea = document.createElement("textarea");
+      var commentButton = document.createElement("button");
+
+      textarea.id = docid + "textarea";
+      textarea.rows = 4;
+      textarea.cols = 50;
+      commentButton.className = "btn btn-primary";
+      commentButton.innerText = "Comment";
+      commentButton.id = docid;
+
+      bodyDiv.appendChild(textarea);
+      bodyDiv.appendChild(commentButton);
+    }
   } else {
-    var textarea = document.createElement("textarea");
-    var commentButton = document.createElement("button");
-
-    textarea.id = docid + "textarea";
-    textarea.rows = 4;
-    textarea.cols = 50;
-    commentButton.className = "btn btn-primary";
-    commentButton.innerText = "Comment";
-    commentButton.id = docid;
-
-    bodyDiv.appendChild(textarea);
-    bodyDiv.appendChild(commentButton);
+    if (isCommented) {
+      var textPar2 = document.createElement("p");
+      textPar2.innerText = "Comentario: " + data.comment;
+      textPar2.className = "card-text";
+      bodyDiv.appendChild(textPar2);
+    } else {
+      var textPar2 = document.createElement("p");
+      textPar2.innerText = "Comentario: RH aún no responde a la sugerencia";
+      textPar2.className = "card-text";
+      bodyDiv.appendChild(textPar2);
+    }
   }
+
+
 
   return cardDiv;
 }
@@ -88,9 +104,11 @@ function loadSuggestions() {
   db.collection("suggestions").get().then(function(querySnapshot) {
     querySnapshot.forEach(function(doc) {
       var data = doc.data();
-      var div = createDiv(data, doc.id, data.isCommented);
+      var div = createDiv(data, doc.id, data.isCommented, true);
       masterDiv.appendChild(div);
-      addListener(doc.id);
+      if (!(data.isCommented)) {
+        addListener(doc.id);
+      }
     });
   });
 }
@@ -177,13 +195,13 @@ function searchSuggestion() {
 
   console.log(inputId);
   var docRef = db.collection("suggestions").doc(inputId);
+  $("#search-card").html("");
 
   docRef.get().then((doc) => {
     if (doc.exists) {
       var data = doc.data();
-      var div = createDiv(data, doc.id, data.isCommented);
+      var div = createDiv(data, doc.id, data.isCommented, false);
       masterDiv.appendChild(div);
-      addListener(doc.id);
     } else {
       // doc.data() will be undefined in this case
       console.log("No such document!");
